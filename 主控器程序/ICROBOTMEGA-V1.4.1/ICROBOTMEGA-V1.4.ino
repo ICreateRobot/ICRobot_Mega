@@ -37,7 +37,7 @@ MeMegaPiDCMotor motor3(PORT2A);  //左后
 
 MeMegaPiDCMotor motor4(PORT2B);  //右后
 //水弹舵机
-int servopin = A13;    //定义舵机接口数字接口7 ,接舵机信号线，这个IO口随便定义
+int servopin = A9;    //定义舵机接口数字接口7 ,接舵机信号线，这个IO口随便定义
 void servopulse(int angle)//定义一个脉冲函数,这个函数的频率是50hz的，20000us=20ms=1/50hz
 {
   int pulsewidth = (angle * 11) + 500; //将角度转化为500-2480的脉宽值
@@ -94,25 +94,25 @@ void Ultrasonic_Wave(void)
 //水弹舵机 A9
 void Bullet_Servo()
 {
-  if (data[4] == 0x22)
+  if (data[4] == 0x23)
   {
     Bullet_angledata++;
   }
-  else if (data[4] == 0x24)
+  else if (data[4] == 0x25)
   {
-    Bullet_angledata = Bullet_angledata + 4;
+    Bullet_angledata = Bullet_angledata + 3;
   }
-  else if (data[4] == 0x23)
+  else if (data[4] == 0x22)
   {
     Bullet_angledata--;
   }
-  else if (data[4] == 0x25)
+  else if (data[4] == 0x24)
   {
-    Bullet_angledata = Bullet_angledata - 4;
+    Bullet_angledata = Bullet_angledata - 3;
   }
-  if (Bullet_angledata <= 5)
+  if (Bullet_angledata <= 10)
   {
-    Bullet_angledata = 5;
+    Bullet_angledata = 10;
   }
   if (Bullet_angledata > 140)
   {
@@ -153,57 +153,57 @@ void Motor_Control(void)
   if (data[1] == 0x10) //前进
   {
     motor1.run(-data[2]);
-    motor2.run(data[2]); 
+    motor2.run(data[2]);
     motor3.run(data[2]);
     motor4.run(-data[2]);
     Serial.println(33);
   }
   else if (data[1] == 0x11) //后退
   {
-    motor1.run(data[2]); 
-    motor2.run(-data[2]); 
+    motor1.run(data[2]);
+    motor2.run(-data[2]);
     motor3.run(-data[2]);
     motor4.run(data[2]);
     Serial.println(66);
   }
   else  if (data[1] == 0x13) //左移
   {
-    motor1.run(-data[2]); 
-    motor2.run(-data[2]); 
+    motor1.run(-data[2]);
+    motor2.run(-data[2]);
     motor3.run(data[2]);
     motor4.run(data[2]);
   }
   else  if (data[1] == 0x12) //右移
   {
-    motor1.run(data[2]); 
-    motor2.run(data[2]); 
+    motor1.run(data[2]);
+    motor2.run(data[2]);
     motor3.run(-data[2]);
     motor4.run(-data[2]);
   }
   else if (data[1] == 0x14) //左转
   {
-    motor1.run(-data[2]); 
-    motor2.run(data[2]); 
+    motor1.run(-data[2]);
+    motor2.run(data[2]);
     motor3.run(-data[2]);
     motor4.run(data[2]);
   }
   else if (data[1] == 0x15) //右转
   {
-    motor1.run(data[2]); 
-    motor2.run(-data[2]); 
+    motor1.run(data[2]);
+    motor2.run(-data[2]);
     motor3.run(data[2]);
     motor4.run(-data[2]);
   }
-   if ((data[1] == 0x20) || (data[1] == 0)) //停止电机
+  if ((data[1] == 0x20) || (data[1] == 0)) //停止电机
   {
-        motor1.stop();
-        motor2.stop();
-        motor3.stop();
-        motor4.stop();
-//    motor1.run(0); /* value: between -255 and 255. */
-//    motor2.run(0); /* value: between -255 and 255. */
-//    motor3.run(0);
-//    motor4.run(0);
+    motor1.stop();
+    motor2.stop();
+    motor3.stop();
+    motor4.stop();
+    //    motor1.run(0); /* value: between -255 and 255. */
+    //    motor2.run(0); /* value: between -255 and 255. */
+    //    motor3.run(0);
+    //    motor4.run(0);
     Serial.println(99);
   }
 }
@@ -282,11 +282,13 @@ void loop()
   //电机控制
   Motor_Control();
   //  水弹舵机
-  if (data[4] != 0)
+  if ((data[4] == 0x22) || (data[4] == 0x23) || (data[4] == 0x24) || (data[4] == 0x25))
   {
     Bullet_Servo();  //引用脉冲函数  20-160舵机角度 //30--80机械手
+    Y_data[4] = 0;
+    data[4] = 0;
   }
-  // servopulse(160);
+  // servopulse(80);
   //  servopulse1(30);
   //  机械手舵机
   if (data[5] != 0)
