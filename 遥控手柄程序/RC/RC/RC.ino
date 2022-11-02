@@ -350,19 +350,19 @@ void Connect_ble()
     }
   }
   // 如果按键按下
-//  if (Key.T)
-//  {
-//    if (connected != 0)//如果连着设备就先断掉
-//    {
-//      pClient->disconnect();
-//      delay(500);
-//    }
-//    Serial.println("开始搜索随机设备");
-//    BLE_Pattern = 4;//选择模式重新绑定设备
-//    BLEDevice::getScan()->clearResults();
-//    BLEDevice::getScan()->start(3, false);
-//    BLE_Search_Begin_Time = millis();
-//  }
+  if (Key.T)
+  {
+    if (connected != 0)//如果连着设备就先断掉
+    {
+      pClient->disconnect();
+      delay(500);
+    }
+    Serial.println("开始搜索随机设备");
+    BLE_Pattern = 4;//选择模式重新绑定设备
+    BLEDevice::getScan()->clearResults();
+    BLEDevice::getScan()->start(3, false);
+    BLE_Search_Begin_Time = millis();
+  }
 
   // 如果找到设备就尝试连接设备
   if (doConnect) {
