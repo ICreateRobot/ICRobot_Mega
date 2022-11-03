@@ -9,9 +9,12 @@
 #include <string>
 #include <Ticker.h>
 #include <EEPROM.h>
+#include "esp_system.h"
 
 #define WS2812_PIN  4  //WS2812
 
+const int wdtTimeout = 3000;  //time in ms to trigger the watchdog
+hw_timer_t *timer = NULL;
 //电源
 #define POWER_K_OUT 27//电源输出
 #define POWER_K_IN  32//电源输入
@@ -273,10 +276,10 @@ class MyClientCallback : public BLEClientCallbacks {
       doSacn = true;
       //Serial.println(BLE_Pattern);
       if (BLE_Pattern == 3)
-      if (BLE_Pattern != 5)
-      {
-        BLE_Pattern = 0;//退回到开始状态
-      }
+        if (BLE_Pattern != 5)
+        {
+          BLE_Pattern = 0;//退回到开始状态
+        }
     }
 };
 
@@ -375,7 +378,22 @@ void Connect_ble()
 uint8_t power_flag = 0;
 uint8_t power_key_flag = 1;
 
-
+void IRAM_ATTR resetModule() {
+  ets_printf("reboot\n");
+  pixels.setPixelColor(0, pixels.Color(200, 0, 0)); //注意是从0开始，第一个led对应0
+  pixels.show();//刷新
+  pixels.setPixelColor(0, pixels.Color(200, 0, 0)); //注意是从0开始，第一个led对应0
+  pixels.show();//刷新
+  esp_restart();
+  ESP.restart();
+  while (1)
+  {
+    digitalWrite(POWER_K_OUT, LOW);
+    digitalWrite(POWER_K_OUT, LOW);
+    ets_printf("reboot1\n");
+    ESP.restart();
+  }
+}
 //开关机管理
 
 void Shutdown(void)
@@ -408,12 +426,12 @@ void Shutdown(void)
     }
   }
   else if ((power_flag == 1) && (power_key_flag == 1)) //关机
-  { 
+  {
     if (analogRead(POWER_K_IN) <= 2500)
     {
       delay(10);
       if (analogRead(POWER_K_IN) <= 2500)
-      { 
+      {
         delay(10);
         if (analogRead(POWER_K_IN) <= 2500)
         {
@@ -628,8 +646,8 @@ void setup()
   // put your setup code here, to run once:
   pixels.begin();//初始化灯带
   pixels.clear();//清空灯带数组
-//  pixels.setPixelColor(0, pixels.Color(0, 0, 0)); //注意是从0开始，第一个led对应0
-//  pixels.show();//刷新
+  //  pixels.setPixelColor(0, pixels.Color(0, 0, 0)); //注意是从0开始，第一个led对应0
+  //  pixels.show();//刷新
   Serial.begin(115200);
   BLEDevice::init("");
   BLEScan* pBLEScan = BLEDevice::getScan();
@@ -647,10 +665,17 @@ void setup()
   pinMode(R_M, INPUT_PULLUP);
   pinMode(POWER_K_IN, INPUT);
   pinMode(POWER_K_OUT, OUTPUT);
+  
+  timer = timerBegin(0, 800, true);                  //timer 0, div 80
+  timerAttachInterrupt(timer, &resetModule, true);  //attach callback
+  timerAlarmWrite(timer, wdtTimeout * 1000, false); //set time in us
+  timerAlarmEnable(timer);                          //enable interrupt
+
 }
 
 void loop() {
   Shutdown();
+  timerWrite(timer, 0); //reset timer (feed watchdog)
   Get_Key();
   Connect_ble();
   Read_Rocker();//读取摇杆
