@@ -201,11 +201,11 @@ boolean connected = false;
 //蓝牙开始
 BLEAdvertisedDevice* pServer;
 BLERemoteCharacteristic* pRemoteCharacteristic;
-#define SERVICE_UUID "0000fe3c-0000-1000-8000-00805f9b34f0"
-#define CHARACTERISTIC_UUID "0000fe3c-0000-1000-8000-00805f9b34f1"
+//#define SERVICE_UUID "0000fe3c-0000-1000-8000-00805f9b34f0"
+//#define CHARACTERISTIC_UUID "0000fe3c-0000-1000-8000-00805f9b34f1"
 
-// #define SERVICE_UUID "0000ffe0-0000-1000-8000-00805f9b34fb"
-// #define CHARACTERISTIC_UUID "0000ffe1-0000-1000-8000-00805f9b34fb"
+#define SERVICE_UUID "0000ffe0-0000-1000-8000-00805f9b34fb"
+#define CHARACTERISTIC_UUID "0000ffe1-0000-1000-8000-00805f9b34fb"
 uint8_t BLE_OUT[6];
 uint8_t BLE_OUT_Last[6];
 BLEClient* pClient  = BLEDevice::createClient(); // 创建客户端
@@ -380,10 +380,12 @@ uint8_t power_key_flag = 1;
 
 void IRAM_ATTR resetModule() {
   ets_printf("reboot\n");
-  pixels.setPixelColor(0, pixels.Color(200, 0, 0)); //注意是从0开始，第一个led对应0
-  pixels.show();//刷新
-  pixels.setPixelColor(0, pixels.Color(200, 0, 0)); //注意是从0开始，第一个led对应0
-  pixels.show();//刷新
+//  pixels.setPixelColor(0, pixels.Color(200, 0, 0)); //注意是从0开始，第一个led对应0
+//  pixels.show();//刷新
+//  pixels.setPixelColor(0, pixels.Color(200, 0, 0)); //注意是从0开始，第一个led对应0
+//  pixels.show();//刷新
+  digitalWrite(POWER_K_OUT, LOW);
+  digitalWrite(POWER_K_OUT, LOW);
   esp_restart();
   ESP.restart();
   while (1)
@@ -646,8 +648,8 @@ void setup()
   // put your setup code here, to run once:
   pixels.begin();//初始化灯带
   pixels.clear();//清空灯带数组
-  //  pixels.setPixelColor(0, pixels.Color(0, 0, 0)); //注意是从0开始，第一个led对应0
-  //  pixels.show();//刷新
+//    pixels.setPixelColor(0, pixels.Color(200, 0, 0)); //注意是从0开始，第一个led对应0
+//    pixels.show();//刷新
   Serial.begin(115200);
   BLEDevice::init("");
   BLEScan* pBLEScan = BLEDevice::getScan();
@@ -665,7 +667,7 @@ void setup()
   pinMode(R_M, INPUT_PULLUP);
   pinMode(POWER_K_IN, INPUT);
   pinMode(POWER_K_OUT, OUTPUT);
-  
+
   timer = timerBegin(0, 800, true);                  //timer 0, div 80
   timerAttachInterrupt(timer, &resetModule, true);  //attach callback
   timerAlarmWrite(timer, wdtTimeout * 1000, false); //set time in us
@@ -676,6 +678,7 @@ void setup()
 void loop() {
   Shutdown();
   timerWrite(timer, 0); //reset timer (feed watchdog)
+  Serial.println("测试");
   Get_Key();
   Connect_ble();
   Read_Rocker();//读取摇杆
